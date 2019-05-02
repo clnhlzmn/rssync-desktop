@@ -1,3 +1,4 @@
+package xyz.colinholzman.rssync_desktop
 
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
