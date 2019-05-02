@@ -3,8 +3,15 @@ package xyz.colinholzman.rssync_desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
-fun main() {
+fun main(args: Array<String>) {
+
+    val task = Runnable { print("task") }
+    val executorService = Executors.newSingleThreadScheduledExecutor();
+    executorService.scheduleAtFixedRate(task, 0, 10, TimeUnit.SECONDS);
+
     val t = Toolkit.getDefaultToolkit().systemClipboard.getContents(null)
     try {
         if (t != null && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
@@ -15,6 +22,10 @@ fun main() {
         }
     } catch (e: Exception) {
         print("Error: $e")
+    }
+
+    while (!executorService.isShutdown) {
+        continue
     }
 }
 
