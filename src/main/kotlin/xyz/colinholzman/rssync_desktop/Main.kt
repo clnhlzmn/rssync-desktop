@@ -5,8 +5,11 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
 
 fun main(args: Array<String>) {
+
+    val rs = RemoteStorage("", "")
 
     val task = Runnable { print("task") }
     val executorService = Executors.newSingleThreadScheduledExecutor();
