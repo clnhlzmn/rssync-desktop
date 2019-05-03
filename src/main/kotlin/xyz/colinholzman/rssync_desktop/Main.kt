@@ -1,9 +1,43 @@
 package xyz.colinholzman.rssync_desktop
 
+import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
+
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
-import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
+
+import javafx.application.Platform
+import javafx.embed.swing.JFXPanel
+import javafx.scene.Scene
+import javafx.scene.web.WebView
+
+import javax.swing.*
+
+
+class Hello public constructor() : JFrame("hello") {
+    init {
+        this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+
+        //        this.add(new JLabel("Hello, world!"));
+
+        // You should execute this part on the Event Dispatch Thread
+        // because it modifies a Swing component
+        val jfxPanel = JFXPanel()
+        this.add(jfxPanel)
+
+        // Creation of scene and future interactions with JFXPanel
+        // should take place on the JavaFX Application Thread
+        Platform.runLater {
+            val webView = WebView()
+            jfxPanel.scene = Scene(webView)
+            webView.engine.load("http://www.stackoverflow.com/")
+        }
+
+        this.pack()
+        this.isVisible = true
+
+    }
+}
 
 fun main(args: Array<String>) {
 
@@ -17,6 +51,8 @@ fun main(args: Array<String>) {
 
     var lastRemote: String? = null
     var lastLocal: String? = null
+
+    Hello()
 
     val cb = Toolkit.getDefaultToolkit().systemClipboard
     while (true) {
@@ -37,6 +73,8 @@ fun main(args: Array<String>) {
         } catch (e: Exception) {
             print("Error: $e")
         }
+
+        Thread.sleep(1000)
     }
 
 }
