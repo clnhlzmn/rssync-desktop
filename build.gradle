@@ -26,7 +26,7 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-mainClassName = "xyz.colinholzman.rssync_desktop.MainKt"
+mainClassName = "xyz.colinholzman.rssync_desktop.Main"
 
 jar {
     manifest {
