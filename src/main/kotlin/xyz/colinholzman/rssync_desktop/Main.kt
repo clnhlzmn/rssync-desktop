@@ -10,6 +10,7 @@ import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.Scene
 import javafx.scene.web.WebView
+import java.awt.Dimension
 
 import javax.swing.*
 
@@ -18,6 +19,7 @@ class GUI constructor() : JFrame("hello") {
     init {
         this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
+        //create layout and assign it to this
         val layout = SpringLayout()
         this.layout = layout
 
@@ -26,6 +28,7 @@ class GUI constructor() : JFrame("hello") {
         // You should execute this part on the Event Dispatch Thread
         // because it modifies a Swing component
         val jfxPanel = JFXPanel()
+        jfxPanel.preferredSize = Dimension(400, 300)
         this.add(jfxPanel)
 
         val userNameField = JTextField("user@domain", 15)
@@ -42,8 +45,8 @@ class GUI constructor() : JFrame("hello") {
 
         layout.putConstraint(SpringLayout.WEST, jfxPanel, 5, SpringLayout.WEST, pane)
         layout.putConstraint(SpringLayout.NORTH, jfxPanel, 5, SpringLayout.SOUTH, connectButton)
-        layout.putConstraint(SpringLayout.EAST, jfxPanel, -5, SpringLayout.EAST, pane)
-        layout.putConstraint(SpringLayout.SOUTH, jfxPanel, -5, SpringLayout.SOUTH, pane)
+        layout.putConstraint(SpringLayout.EAST, pane, 5, SpringLayout.EAST, jfxPanel)
+        layout.putConstraint(SpringLayout.SOUTH, pane, 5, SpringLayout.SOUTH, jfxPanel)
 
         // Creation of scene and future interactions with JFXPanel
         // should take place on the JavaFX Application Thread
