@@ -14,16 +14,36 @@ import javafx.scene.web.WebView
 import javax.swing.*
 
 
-class Hello public constructor() : JFrame("hello") {
+class GUI constructor() : JFrame("hello") {
     init {
         this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
-        //        this.add(new JLabel("Hello, world!"));
+        val layout = SpringLayout()
+        this.layout = layout
+
+        val pane = this.contentPane
 
         // You should execute this part on the Event Dispatch Thread
         // because it modifies a Swing component
         val jfxPanel = JFXPanel()
         this.add(jfxPanel)
+
+        val userNameField = JTextField("user@domain", 15)
+        this.add(userNameField)
+        val connectButton = JButton("Connect")
+        connectButton.addActionListener { jfxPanel.isVisible = !jfxPanel.isVisible }
+        this.add(connectButton)
+
+        layout.putConstraint(SpringLayout.WEST, userNameField, 5, SpringLayout.WEST, pane)
+        layout.putConstraint(SpringLayout.WEST, connectButton, 5, SpringLayout.EAST, userNameField)
+
+        layout.putConstraint(SpringLayout.NORTH, userNameField, 5, SpringLayout.NORTH, pane)
+        layout.putConstraint(SpringLayout.NORTH, connectButton, 5, SpringLayout.NORTH, pane)
+
+        layout.putConstraint(SpringLayout.WEST, jfxPanel, 5, SpringLayout.WEST, pane)
+        layout.putConstraint(SpringLayout.NORTH, jfxPanel, 5, SpringLayout.SOUTH, connectButton)
+        layout.putConstraint(SpringLayout.EAST, jfxPanel, -5, SpringLayout.EAST, pane)
+        layout.putConstraint(SpringLayout.SOUTH, jfxPanel, -5, SpringLayout.SOUTH, pane)
 
         // Creation of scene and future interactions with JFXPanel
         // should take place on the JavaFX Application Thread
@@ -52,7 +72,7 @@ fun main(args: Array<String>) {
     var lastRemote: String? = null
     var lastLocal: String? = null
 
-    Hello()
+    GUI()
 
     val cb = Toolkit.getDefaultToolkit().systemClipboard
     while (true) {
