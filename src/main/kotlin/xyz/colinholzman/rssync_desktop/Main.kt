@@ -22,7 +22,7 @@ class Main {
 
             GUI()
 
-            Background()
+//            Background()
 
         }
     }

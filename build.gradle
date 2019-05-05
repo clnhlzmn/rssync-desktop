@@ -11,6 +11,7 @@ repositories {
 }
 
 dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     //remotestorage_kotlin needs these

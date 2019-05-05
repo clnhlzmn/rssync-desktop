@@ -1,36 +1,48 @@
 package xyz.colinholzman.rssync_desktop
 
+import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 
-class Background {
-    init {
-        val thread = Runnable {
-            var lastRemote: String? = null
-            var lastLocal: String? = null
-            val cb = Toolkit.getDefaultToolkit().systemClipboard
-            while (true) {
-                try {
-                    //check for local changes
-                    val t = cb.getContents(null)
-                    if (t == null && lastLocal != null) {
-                        //TODO: delete remote
-                    } else if (t != null && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                        var text = t.getTransferData(DataFlavor.stringFlavor) as String
-                        text = text.toUpperCase()
-                        val ss = StringSelection(text)
-                        Toolkit.getDefaultToolkit().systemClipboard.setContents(ss, null)
-                    }
+class Background(val rs: RemoteStorage) {
 
-                    //check for remote changes
+    val cb = Toolkit.getDefaultToolkit().systemClipboard
 
-                } catch (e: Exception) {
-                    print("Error: $e")
-                }
-                Thread.sleep(1000)
-            }
+    private fun getClipboardContents(): String? {
+        val t = cb.getContents(null)
+        return if (t != null && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            t.getTransferData(DataFlavor.stringFlavor) as String
+        } else {
+            null
         }
-        thread.run()
+    }
+
+    private val localListener = ChangeListener(
+        1000,
+        getClipboardContents(),
+        { getClipboardContents() },
+        { s -> println("Local: $s") }
+    )
+
+    private fun getServerContents(): String? {
+        return rs.getSync("/clipboard/txt")
+    }
+
+    private val remoteListener = ChangeListener(
+        1000,
+        getServerContents(),
+        { getServerContents() },
+        { s -> println("Server: $s") }
+    )
+
+    fun start() {
+        localListener.start()
+        remoteListener.start()
+    }
+
+    fun stop() {
+        localListener.stop()
+        remoteListener.stop()
     }
 }
