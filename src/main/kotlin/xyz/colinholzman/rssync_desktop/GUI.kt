@@ -4,10 +4,17 @@ import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.Scene
 import javafx.scene.web.WebView
+import xyz.colinholzman.remotestorage_kotlin.Authorization
 import xyz.colinholzman.remotestorage_kotlin.Discovery
 import java.awt.Dimension
 
 import javax.swing.*
+import java.net.MalformedURLException
+import javafx.event.EventHandler
+import java.util.HashMap
+import javafx.scene.web.WebEngine
+import javafx.scene.web.WebEvent
+import java.net.URL
 
 
 class GUI {
@@ -38,7 +45,40 @@ class GUI {
                 { println("Discovery: fail") },
                 {
                     println("Discovered: $it")
+                    // Creation of scene and future interactions with JFXPanel
+                    // should take place on the JavaFX Application Thread
+                    Platform.runLater {
+                        val webView = WebView()
+                        jfxPanel.scene = Scene(webView)
+                        webView.engine.load(Authorization.getAuthQuery(it))
+                        //get access token from redirect url
+                        webView.engine.onStatusChanged =
+                            EventHandler<WebEvent<String>> { event ->
+                                if (event.source is WebEngine) {
+                                    val we = event.source as WebEngine
+                                    val location = we.location
+                                    if (location.startsWith(Authorization.redirectUrl) && location.contains("access_token")) {
+                                        try {
+                                            val url = URL(location)
+                                            val params = url.getRef().split("&")
+                                            val map = HashMap<String, String>()
+                                            for (param in params) {
+                                                val name =
+                                                    param.split("=".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[0]
+                                                val value =
+                                                    param.split("=".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1]
+                                                map[name] = value
+                                            }
+                                            println("The access token: " + map["access_token"])
+                                        } catch (e: MalformedURLException) {
+                                            e.printStackTrace()
+                                        }
 
+                                    }
+                                }
+                            }
+                        jfxPanel.isVisible = true
+                    }
                 }
             )
         }
@@ -54,14 +94,6 @@ class GUI {
         layout.putConstraint(SpringLayout.NORTH, jfxPanel, 5, SpringLayout.SOUTH, connectButton)
         layout.putConstraint(SpringLayout.EAST, pane, 5, SpringLayout.EAST, jfxPanel)
         layout.putConstraint(SpringLayout.SOUTH, pane, 5, SpringLayout.SOUTH, jfxPanel)
-
-        // Creation of scene and future interactions with JFXPanel
-        // should take place on the JavaFX Application Thread
-        Platform.runLater {
-            val webView = WebView()
-            jfxPanel.scene = Scene(webView)
-            webView.engine.load("http://www.stackoverflow.com/")
-        }
 
         frame.pack()
         frame.isVisible = true
