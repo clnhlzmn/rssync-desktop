@@ -4,33 +4,45 @@ import javafx.application.Platform
 import javafx.embed.swing.JFXPanel
 import javafx.scene.Scene
 import javafx.scene.web.WebView
+import xyz.colinholzman.remotestorage_kotlin.Discovery
 import java.awt.Dimension
 
 import javax.swing.*
 
 
-class GUI : JFrame("hello") {
-    init {
-        this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+class GUI {
+
+    fun authorize(onAuthorizationDenied: (String)->Unit, onAuthorizationGranted: (String)->Unit) {
+        val frame = JFrame("connect")
+        frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
         //create layout and assign it to this
         val layout = SpringLayout()
-        this.layout = layout
+        frame.layout = layout
 
-        val pane = this.contentPane
+        val pane = frame.contentPane
 
         // You should execute this part on the Event Dispatch Thread
         // because it modifies a Swing component
         val jfxPanel = JFXPanel()
         jfxPanel.preferredSize = Dimension(400, 300)
-        this.add(jfxPanel)
+        frame.add(jfxPanel)
         jfxPanel.isVisible = false
 
         val userNameField = JTextField("user@domain", 15)
-        this.add(userNameField)
+        frame.add(userNameField)
         val connectButton = JButton("Connect")
-        connectButton.addActionListener { jfxPanel.isVisible = !jfxPanel.isVisible }
-        this.add(connectButton)
+        connectButton.addActionListener {
+            Discovery.lookup(
+                userNameField.text,
+                { println("Discovery: fail") },
+                {
+                    println("Discovered: $it")
+
+                }
+            )
+        }
+        frame.add(connectButton)
 
         layout.putConstraint(SpringLayout.WEST, userNameField, 5, SpringLayout.WEST, pane)
         layout.putConstraint(SpringLayout.WEST, connectButton, 5, SpringLayout.EAST, userNameField)
@@ -51,8 +63,7 @@ class GUI : JFrame("hello") {
             webView.engine.load("http://www.stackoverflow.com/")
         }
 
-        this.pack()
-        this.isVisible = true
-
+        frame.pack()
+        frame.isVisible = true
     }
 }

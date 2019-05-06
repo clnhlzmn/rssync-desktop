@@ -20,7 +20,10 @@ class Main {
             val href = userAddress
             val rs = RemoteStorage(href, token)
 
-            GUI()
+            GUI().authorize(
+                {},
+                {}
+            )
 
 //            Background()
 
