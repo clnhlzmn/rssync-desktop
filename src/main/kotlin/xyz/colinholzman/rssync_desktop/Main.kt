@@ -1,5 +1,6 @@
 package xyz.colinholzman.rssync_desktop
 
+import xyz.colinholzman.remotestorage_kotlin.Authorization
 import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
@@ -12,17 +13,14 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
 
-            //TODO: get user address and token from args
-            val userAddress = ""
-            val token = ""
-
-            //TODO: get href from user address using Discovery
-            val href = userAddress
-            val rs = RemoteStorage(href, token)
-
-            GUI().authorize(
-                {},
-                {}
+            GUI.authorize(
+                { println("Denied: $it") },
+                { jrd, token ->
+                    println("Authorized: $token")
+                    val rs = RemoteStorage(Authorization.getHref(jrd), token)
+                    val bg = Background(rs)
+                    bg.start()
+                }
             )
 
 //            Background()
