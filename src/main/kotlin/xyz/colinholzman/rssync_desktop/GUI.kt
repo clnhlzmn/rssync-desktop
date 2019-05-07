@@ -51,29 +51,24 @@ class GUI {
                         val webView = WebView()
                         jfxPanel.scene = Scene(webView)
                         webView.engine.load(Authorization.getAuthQuery(it))
+                        val listener = webView.engine.onStatusChanged
                         //get access token from redirect url
                         webView.engine.onStatusChanged =
                             EventHandler<WebEvent<String>> { event ->
                                 if (event.source is WebEngine) {
                                     val we = event.source as WebEngine
                                     val location = we.location
-                                    if (location.startsWith(Authorization.redirectUrl) && location.contains("access_token")) {
-                                        try {
-                                            val url = URL(location)
-                                            val params = url.getRef().split("&")
-                                            val map = HashMap<String, String>()
-                                            for (param in params) {
-                                                val name =
-                                                    param.split("=".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[0]
-                                                val value =
-                                                    param.split("=".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()[1]
-                                                map[name] = value
+                                    if (location.startsWith(Authorization.redirectUrl)) {
+                                        val url = URL(location)
+                                        val map = Authorization.getMap(url.ref)
+                                        when {
+                                            map.containsKey("access_token") -> {
+                                                onAuthorizationGranted(map["access_token"]!!)
+                                                webView.engine.onStatusChanged = listener
                                             }
-                                            println("The access token: " + map["access_token"])
-                                        } catch (e: MalformedURLException) {
-                                            e.printStackTrace()
+                                            map.containsKey("error") -> onAuthorizationDenied(map["error"]!!)
+                                            else -> onAuthorizationDenied("error")
                                         }
-
                                     }
                                 }
                             }
