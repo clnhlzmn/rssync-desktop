@@ -72,7 +72,6 @@ class GUI {
                                                     webView.engine.onStatusChanged = oldListener
                                                 }
                                                 map.containsKey("error") -> onAuthorizationDenied(map["error"]!!)
-                                                else -> onAuthorizationDenied("error")
                                             }
                                         }
                                     }
