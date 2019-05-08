@@ -17,7 +17,10 @@ class Main {
                 { println("Denied: $it") },
                 { jrd, token ->
                     println("Authorized: $token")
-                    val rs = RemoteStorage(Authorization.getHref(jrd), token)
+                    val href = Authorization.getHref(jrd)
+                    val prefs = hashMapOf("href" to href, "token" to token )
+                    Preferences.set(prefs)
+                    val rs = RemoteStorage(href, token)
                     val bg = Background(rs)
                     bg.start()
                 }

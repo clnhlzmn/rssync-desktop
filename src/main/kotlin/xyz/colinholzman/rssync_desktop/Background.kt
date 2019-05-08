@@ -4,6 +4,7 @@ import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.Transferable
 
 class Background(val rs: RemoteStorage) {
 
@@ -18,11 +19,21 @@ class Background(val rs: RemoteStorage) {
         }
     }
 
+    private fun setClipboardContents(value: String?) {
+        val t = StringSelection(value)
+        cb.setContents(t, null)
+    }
+
     private val localListener = ChangeListener(
         1000,
         getClipboardContents(),
         { getClipboardContents() },
-        { s -> println("Local: $s") }
+        {
+            if (it != null)
+                rs.putSync("/clipboard/txt", it)
+            else
+                rs.deleteSync("/clipboard/txt")
+        }
     )
 
     private fun getServerContents(): String? {
@@ -33,7 +44,7 @@ class Background(val rs: RemoteStorage) {
         1000,
         getServerContents(),
         { getServerContents() },
-        { s -> println("Server: $s") }
+        { setClipboardContents(it) }
     )
 
     fun start() {
