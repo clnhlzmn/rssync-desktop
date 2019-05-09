@@ -6,9 +6,9 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
 
-class Background(val rs: RemoteStorage) {
+class Background(private val rs: RemoteStorage) {
 
-    val cb = Toolkit.getDefaultToolkit().systemClipboard
+    private val cb = Toolkit.getDefaultToolkit().systemClipboard
 
     private fun getClipboardContents(): String? {
         val t = cb.getContents(null)

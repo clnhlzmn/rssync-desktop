@@ -1,14 +1,14 @@
 package xyz.colinholzman.rssync_desktop
 
 class ChangeListener(
-    val updatePeriod: Long,
-    val initial: String?,
-    val getter: ()->String?,
-    val listener: (String?)->Unit) {
+    private val updatePeriod: Long,
+    private val initial: String?,
+    private val getter: ()->String?,
+    private val listener: (String?)->Unit) {
 
     class UpdaterThread(
-        val updatePeriod: Long,
-        val initial: String?,
+        private val updatePeriod: Long,
+        initial: String?,
         val getter: ()->String?,
         val listener: (String?)->Unit): Thread() {
         private var lastValue = initial
@@ -19,7 +19,7 @@ class ChangeListener(
                 if (newValue != lastValue)
                     listener(newValue)
                 lastValue = newValue
-                Thread.sleep(updatePeriod)
+                sleep(updatePeriod)
             }
         }
     }

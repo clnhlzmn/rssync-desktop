@@ -1,10 +1,6 @@
 package xyz.colinholzman.rssync_desktop
 
-import xyz.colinholzman.remotestorage_kotlin.Authorization
-import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
-import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
+import xyz.colinholzman.remotestorage_kotlin.*
 
 class Main {
 
@@ -13,21 +9,33 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
 
-            GUI.authorize(
-                { println("Denied: $it") },
-                { jrd, token ->
-                    println("Authorized: $token")
-                    val href = Authorization.getHref(jrd)
-                    val prefs = hashMapOf("href" to href, "token" to token )
-                    Preferences.set(prefs)
-                    val rs = RemoteStorage(href, token)
-                    val bg = Background(rs)
-                    bg.start()
-                }
-            )
+            //try to get saved values
+            val prefs = Preferences.get()
+            val href = prefs["href"]
+            val token = prefs["token"]
 
-//            Background()
-
+            if (href != null && token != null) {
+                val rs = RemoteStorage(href, token)
+                val bg = Background(rs)
+                bg.start()
+            } else {
+                //do authorization
+                var auth: AuthDialog? = null
+                auth = AuthDialog(
+                    { println("Denied: $it") },
+                    { jrd, newToken ->
+                        println("Authorized: $token")
+                        val newHref = Authorization.getHref(jrd)
+                        val updatedPrefs = prefs + ("href" to newHref) + ("token" to newToken)
+                        Preferences.set(updatedPrefs)
+                        auth?.isVisible = false
+                        val rs = RemoteStorage(newHref, newToken)
+                        val bg = Background(rs)
+                        bg.start()
+                    }
+                )
+                auth.authorize()
+            }
         }
     }
 }

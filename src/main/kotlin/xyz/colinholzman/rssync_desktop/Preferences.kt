@@ -8,11 +8,14 @@ class Preferences {
 
     companion object {
 
-        private val preferencesPath =
-            System.getProperty("user.home") + File.separator + ".rssync" + File.separator + "preferences"
+        private val preferencesDir =
+            System.getProperty("user.home") + File.separator + ".rssync"
+
+        private val preferencesFile =
+            preferencesDir + File.separator + "preferences"
 
         fun get(): Map<String, String> {
-            val file = File(preferencesPath)
+            val file = File(preferencesFile)
             return if (file.exists()) {
                 val content = file.readText()
                 Gson().fromJson<Map<String, String>>(content, object : TypeToken<Map<String, String>>() {}.type)
@@ -23,7 +26,9 @@ class Preferences {
 
         fun set(value: Map<String, String>) {
             val content = Gson().toJson(value)
-            val file = File(preferencesPath)
+            val dir = File(preferencesDir)
+            dir.mkdirs()
+            val file = File(preferencesFile)
             file.createNewFile()
             file.printWriter().use {
                 it.print(content)
