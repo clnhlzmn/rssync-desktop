@@ -17,7 +17,7 @@ class AuthDialog(
     val onAuthorizationGranted: (JSONResourceDescriptor, String) -> Unit)
     : JFrame("Authorize") {
 
-    fun authorize() {
+    init {
         this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
         //create layout and assign it to this
@@ -87,7 +87,6 @@ class AuthDialog(
         layout.putConstraint(SpringLayout.SOUTH, pane, 5, SpringLayout.SOUTH, jfxPanel)
 
         this.pack()
-        this.isVisible = true
     }
 
 }
