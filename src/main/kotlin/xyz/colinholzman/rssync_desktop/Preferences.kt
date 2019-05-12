@@ -8,6 +8,17 @@ class Preferences {
 
     companion object {
 
+        val rsUser = "rs_user"
+        val rsHref = "rs_href"
+        val rsToken = "rs_token"
+
+        val mqttServer = "mqtt_server"
+        val mqttPort = "mqtt_port"
+        val mqttUser = "mqtt_user"
+        val mqttPassword = "mqtt_password"
+
+        val clientId = "client_id"
+
         private val preferencesDir =
             System.getProperty("user.home") + File.separator + ".rssync"
 

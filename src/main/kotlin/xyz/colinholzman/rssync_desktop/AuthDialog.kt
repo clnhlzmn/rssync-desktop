@@ -13,18 +13,20 @@ import java.net.URL
 import javax.swing.*
 
 class AuthDialog(
-    val onAuthorizationDenied: (String) -> Unit,
-    val onAuthorizationGranted: (JSONResourceDescriptor, String) -> Unit)
+    user: String,
+    onAuthorizationDenied: (String) -> Unit,
+    onAuthorizationGranted: (JSONResourceDescriptor, String) -> Unit)
     : JFrame("Authorize") {
 
     init {
-        this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+        this.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 
         //create layout and assign it to this
         val layout = SpringLayout()
         this.layout = layout
 
         val pane = this.contentPane
+        pane.preferredSize = Dimension(400, 400)
 
         // You should execute this part on the Event Dispatch Thread
         // because it modifies a Swing component
@@ -33,60 +35,52 @@ class AuthDialog(
         this.add(jfxPanel)
         jfxPanel.isVisible = false
 
-        val userNameField = JTextField("test42@5apps.com", 15)
-        this.add(userNameField)
-        val connectButton = JButton("Connect")
-        connectButton.addActionListener {
-            Discovery.lookup(
-                userNameField.text,
-                { println("Discovery: fail") },
-                {
-                    println("Discovered: $it")
-                    // Creation of scene and future interactions with JFXPanel
-                    // should take place on the JavaFX Application Thread
-                    Platform.runLater {
-                        val webView = WebView()
-                        jfxPanel.scene = Scene(webView)
-                        webView.engine.load(Authorization.getAuthQuery(it))
-                        val oldListener = webView.engine.onStatusChanged
-                        //get access token from redirect url
-                        webView.engine.onStatusChanged =
-                            EventHandler<WebEvent<String>> { event ->
-                                if (event.source is WebEngine) {
-                                    val we = event.source as WebEngine
-                                    val location = we.location
-                                    if (location.startsWith(Authorization.redirectUrl)) {
-                                        val url = URL(location)
-                                        val map = Authorization.getMap(url.ref)
-                                        when {
-                                            map.containsKey("access_token") -> {
-                                                onAuthorizationGranted(it, map["access_token"]!!)
-                                                webView.engine.onStatusChanged = oldListener
-                                            }
-                                            map.containsKey("error") -> onAuthorizationDenied(map["error"]!!)
-                                        }
-                                    }
-                                }
-                            }
-                        jfxPanel.isVisible = true
-                    }
-                }
-            )
-        }
-        this.add(connectButton)
-
-        layout.putConstraint(SpringLayout.WEST, userNameField, 5, SpringLayout.WEST, pane)
-        layout.putConstraint(SpringLayout.WEST, connectButton, 5, SpringLayout.EAST, userNameField)
-
-        layout.putConstraint(SpringLayout.NORTH, userNameField, 5, SpringLayout.NORTH, pane)
-        layout.putConstraint(SpringLayout.NORTH, connectButton, 5, SpringLayout.NORTH, pane)
-
         layout.putConstraint(SpringLayout.WEST, jfxPanel, 5, SpringLayout.WEST, pane)
-        layout.putConstraint(SpringLayout.NORTH, jfxPanel, 5, SpringLayout.SOUTH, connectButton)
-        layout.putConstraint(SpringLayout.EAST, pane, 5, SpringLayout.EAST, jfxPanel)
-        layout.putConstraint(SpringLayout.SOUTH, pane, 5, SpringLayout.SOUTH, jfxPanel)
+        layout.putConstraint(SpringLayout.NORTH, jfxPanel, 5, SpringLayout.NORTH, pane)
+        layout.putConstraint(SpringLayout.EAST, jfxPanel, -5, SpringLayout.EAST, pane)
+        layout.putConstraint(SpringLayout.SOUTH, jfxPanel, -5, SpringLayout.SOUTH, pane)
 
         this.pack()
+
+        Discovery.lookup(
+            user,
+            {
+                println("Discovery: fail")
+                this.isVisible = false
+                dispose()
+            },
+            {
+                println("Discovered: $it")
+                // Creation of scene and future interactions with JFXPanel
+                // should take place on the JavaFX Application Thread
+                Platform.runLater {
+                    val webView = WebView()
+                    jfxPanel.scene = Scene(webView)
+                    webView.engine.load(Authorization.getAuthQuery(it))
+                    val oldListener = webView.engine.onStatusChanged
+                    //get access token from redirect url
+                    webView.engine.onStatusChanged =
+                        EventHandler<WebEvent<String>> { event ->
+                            if (event.source is WebEngine) {
+                                val we = event.source as WebEngine
+                                val location = we.location
+                                if (location.startsWith(Authorization.redirectUrl)) {
+                                    val url = URL(location)
+                                    val map = Authorization.getMap(url.ref)
+                                    when {
+                                        map.containsKey("access_token") -> onAuthorizationGranted(it, map["access_token"]!!)
+                                        map.containsKey("error") -> onAuthorizationDenied(map["error"]!!)
+                                        else -> onAuthorizationDenied("unknown")
+                                    }
+                                    this.isVisible = false
+                                    dispose()
+                                }
+                            }
+                        }
+                    jfxPanel.isVisible = true
+                }
+            }
+        )
     }
 
 }

@@ -1,42 +1,176 @@
 package xyz.colinholzman.rssync_desktop
 
+import javafx.scene.layout.Background
+import xyz.colinholzman.remotestorage_kotlin.Authorization
+import java.awt.Dimension
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import java.awt.Insets
 import javax.swing.*
 
 class SettingsDialog: JFrame("rssync") {
 
     init {
-        this.defaultCloseOperation = WindowConstants.HIDE_ON_CLOSE
+        this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
-        //create layout and assign it to this
-        val layout = SpringLayout()
-        this.layout = layout
-
-        val pane = this.contentPane
+        this.layout = GridBagLayout()
 
         val prefs = Preferences.get()
-        val href = prefs["href"]
 
-        var connectedToField: JTextField? = null
-        var connectButton: JButton? = null
-        if (href == null) {
-            val text = "disconnected"
-            connectedToField = JTextField(text, text.length)
-            connectButton = JButton("Connect")
-        } else {
-            connectedToField = JTextField(href, href.length)
-            connectButton = JButton("Disconnect")
+        //remoteStorage section
+        var gbc = GridBagConstraints()
+        gbc.insets = Insets(5, 5, 5, 5)
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        this.add(JLabel("remoteStorage"), gbc)
+
+        //user label
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridy = 1
+        this.add(JLabel("user:"), gbc)
+
+        //user field
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 0, 5, 5)
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridx = 1
+        gbc.gridy = 1
+        val rsUserField = JTextField(prefs[Preferences.rsUser] ?: "user@example.com")
+        this.add(rsUserField, gbc)
+
+        //token label
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridy = 2
+        this.add(JLabel("token:"), gbc)
+
+        //token field
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 0, 5, 5)
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridx = 1
+        gbc.gridy = 2
+        this.add(JTextField(prefs[Preferences.rsToken] ?: "***"), gbc)
+
+        //authorize button
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridx = 0
+        gbc.gridy = 3
+        val button = JButton("authorize")
+        button.addActionListener{
+            println("authorize button")
+            var auth: AuthDialog? = null
+            auth = AuthDialog(
+                rsUserField.text,
+                { println("Denied: $it") },
+                { jrd, newToken ->
+                    println("Authorized: $newToken")
+                    val newHref = Authorization.getHref(jrd)
+                    val updatedPrefs =
+                        prefs + (Preferences.rsHref to newHref) + (Preferences.rsToken to newToken)
+                    Preferences.set(updatedPrefs)
+                }
+            )
+            auth.isVisible = true
         }
-        this.add(connectedToField)
-        this.add(connectButton)
+        this.add(button, gbc)
 
-        layout.putConstraint(SpringLayout.WEST, connectedToField, 5, SpringLayout.WEST, pane)
-        layout.putConstraint(SpringLayout.WEST, connectButton, 5, SpringLayout.EAST, connectedToField)
+        //separator
+        gbc = GridBagConstraints()
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.gridy = 4
+        gbc.weightx = 1.0
+        gbc.insets = Insets(0, 5, 5, 5)
+        this.add(JSeparator(), gbc)
 
-        layout.putConstraint(SpringLayout.NORTH, connectedToField, 5, SpringLayout.NORTH, pane)
-        layout.putConstraint(SpringLayout.NORTH, connectButton, 5, SpringLayout.NORTH, pane)
+        //MQTT section
+        gbc = GridBagConstraints()
+        gbc.gridy = 5
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        this.add(JLabel("MQTT"), gbc)
 
-        layout.putConstraint(SpringLayout.EAST, pane, 5, SpringLayout.EAST, connectButton)
-        layout.putConstraint(SpringLayout.SOUTH, pane, 5, SpringLayout.SOUTH, connectButton)
+        //mqtt server
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridx = 0
+        gbc.gridy = 6
+        this.add(JLabel("server:"), gbc)
+
+        gbc.insets = Insets(0, 0, 5, 5)
+        gbc.gridx = 1
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        this.add(JTextField(prefs[Preferences.mqttServer] ?: "example.com"), gbc)
+
+        //mqtt port
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridx = 0
+        gbc.gridy = 7
+        this.add(JLabel("port:"), gbc)
+
+        gbc.insets = Insets(0,0, 5, 5)
+        gbc.gridx = 1
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        this.add(JTextField(prefs[Preferences.mqttPort] ?: "12345"), gbc)
+
+        //mqtt user
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridx = 0
+        gbc.gridy = 8
+        this.add(JLabel("user:"), gbc)
+
+        gbc.insets = Insets(0,0, 5, 5)
+        gbc.gridx = 1
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        this.add(JTextField(prefs[Preferences.mqttUser] ?: "user"), gbc)
+
+        //mqtt password
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridx = 0
+        gbc.gridy = 9
+        this.add(JLabel("password:"), gbc)
+
+        gbc.insets = Insets(0,0, 5, 5)
+        gbc.gridx = 1
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        this.add(JTextField(prefs[Preferences.mqttPassword] ?: "***"), gbc)
+
+        //separator
+        gbc = GridBagConstraints()
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.gridy = 10
+        gbc.weightx = 1.0
+        gbc.insets = Insets(0, 5, 5, 5)
+        this.add(JSeparator(), gbc)
+
+        //authorize button
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridx = 0
+        gbc.gridy = 11
+        val startButton = JButton("start")
+        startButton.addActionListener{
+            println("start button")
+            val rs = RSSync()
+            rs.start()
+        }
+        this.add(startButton, gbc)
 
         this.pack()
     }
