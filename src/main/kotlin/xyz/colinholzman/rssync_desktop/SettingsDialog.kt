@@ -1,7 +1,5 @@
 package xyz.colinholzman.rssync_desktop
 
-import javafx.embed.swing.JFXPanel
-import java.awt.Dimension
 import javax.swing.*
 
 class SettingsDialog: JFrame("rssync") {
