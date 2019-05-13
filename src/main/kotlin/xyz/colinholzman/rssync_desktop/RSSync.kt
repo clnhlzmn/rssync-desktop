@@ -2,8 +2,6 @@ package xyz.colinholzman.rssync_desktop
 
 import xyz.colinholzman.remotestorage_kotlin.RemoteStorage
 import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 
 class RSSync {
 
@@ -12,21 +10,7 @@ class RSSync {
     private var rs = RemoteStorage("href", "token")
     private var mqtt = MQTT("", "", "", "") {}
 
-    private fun getClipboardContent(): String? {
-        val t = cb.getContents(null)
-        return if (t != null && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            t.getTransferData(DataFlavor.stringFlavor) as String
-        } else {
-            null
-        }
-    }
-
-    private fun setClipboardContent(value: String?) {
-        val t = StringSelection(value)
-        cb.setContents(t, null)
-    }
-
-    private var localListener: ChangeListener? = null
+    private val clipboardListener = ClipboardListener()
 
     private fun getServerContent(): String? {
         return rs.getSync("/clipboard/txt")
@@ -49,7 +33,6 @@ class RSSync {
         if (href != null && token != null)
             rs = RemoteStorage(href, token)
 
-        //test mqtt
         val host = prefs[Preferences.mqttServer]
         val port = prefs[Preferences.mqttPort]
         val user = prefs[Preferences.mqttUser]
@@ -58,25 +41,21 @@ class RSSync {
             mqtt = MQTT(host, port, user, pass) {
                 val content = getServerContent()
                 println("remote changed: $content")
-                setClipboardContent(content)
+                clipboardListener.setContent(content)
                 //TODO: prevent local listener from noticing this change and publishing again
             }
         }
 
         mqtt.connect()
 
-        localListener = ChangeListener(
-            500,
-            getClipboardContent(),
-            { getClipboardContent() },
-            {
-                val content = getClipboardContent()
-                println("local changed: $content")
-                setServerContent(content)
-                mqtt.publish()
-            }
-        )
-        localListener?.start()
+        clipboardListener.notify = {
+            val content = clipboardListener.getContent()
+            println("local changed: $content")
+            setServerContent(content)
+            mqtt.publish()
+        }
+
+        clipboardListener.start()
 
     }
 
