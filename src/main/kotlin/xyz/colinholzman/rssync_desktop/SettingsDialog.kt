@@ -1,6 +1,5 @@
 package xyz.colinholzman.rssync_desktop
 
-import javafx.scene.layout.Background
 import xyz.colinholzman.remotestorage_kotlin.Authorization
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -16,6 +15,8 @@ class SettingsDialog: JFrame("rssync") {
         this.layout = GridBagLayout()
 
         val prefs = Preferences.get()
+
+        val saveButton = JButton("save")
 
         //remoteStorage section
         var gbc = GridBagConstraints()
@@ -37,6 +38,7 @@ class SettingsDialog: JFrame("rssync") {
         gbc.gridx = 1
         gbc.gridy = 1
         val rsUserField = JTextField(prefs[Preferences.rsUser] ?: "user@example.com")
+        rsUserField.document.addDocumentListener(DocumentChangeListener { saveButton.isEnabled = true })
         this.add(rsUserField, gbc)
 
         //token label
@@ -52,7 +54,9 @@ class SettingsDialog: JFrame("rssync") {
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.gridx = 1
         gbc.gridy = 2
-        this.add(JTextField(prefs[Preferences.rsToken] ?: "***"), gbc)
+        val rsTokenField = JTextField(prefs[Preferences.rsToken] ?: "***")
+        rsTokenField.isEditable = false
+        this.add(rsTokenField, gbc)
 
         //authorize button
         gbc = GridBagConstraints()
@@ -71,9 +75,11 @@ class SettingsDialog: JFrame("rssync") {
                 { jrd, newToken ->
                     println("Authorized: $newToken")
                     val newHref = Authorization.getHref(jrd)
+                    val currentPrefs = Preferences.get()
                     val updatedPrefs =
-                        prefs + (Preferences.rsHref to newHref) + (Preferences.rsToken to newToken)
+                        currentPrefs + (Preferences.rsHref to newHref) + (Preferences.rsToken to newToken)
                     Preferences.set(updatedPrefs)
+                    rsTokenField.text = newToken
                 }
             )
             auth.isVisible = true
@@ -107,7 +113,9 @@ class SettingsDialog: JFrame("rssync") {
         gbc.gridx = 1
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.gridwidth = GridBagConstraints.REMAINDER
-        this.add(JTextField(prefs[Preferences.mqttServer] ?: "example.com"), gbc)
+        val mqttServerField = JTextField(prefs[Preferences.mqttServer] ?: "example.com")
+        mqttServerField.document.addDocumentListener(DocumentChangeListener { saveButton.isEnabled = true })
+        this.add(mqttServerField, gbc)
 
         //mqtt port
         gbc = GridBagConstraints()
@@ -120,7 +128,9 @@ class SettingsDialog: JFrame("rssync") {
         gbc.gridx = 1
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.gridwidth = GridBagConstraints.REMAINDER
-        this.add(JTextField(prefs[Preferences.mqttPort] ?: "12345"), gbc)
+        val mqttPortField = JTextField(prefs[Preferences.mqttPort] ?: "12345")
+        mqttPortField.document.addDocumentListener(DocumentChangeListener { saveButton.isEnabled = true })
+        this.add(mqttPortField, gbc)
 
         //mqtt user
         gbc = GridBagConstraints()
@@ -133,7 +143,9 @@ class SettingsDialog: JFrame("rssync") {
         gbc.gridx = 1
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.gridwidth = GridBagConstraints.REMAINDER
-        this.add(JTextField(prefs[Preferences.mqttUser] ?: "user"), gbc)
+        val mqttUserField = JTextField(prefs[Preferences.mqttUser] ?: "user")
+        mqttUserField.document.addDocumentListener(DocumentChangeListener { saveButton.isEnabled = true })
+        this.add(mqttUserField, gbc)
 
         //mqtt password
         gbc = GridBagConstraints()
@@ -146,7 +158,9 @@ class SettingsDialog: JFrame("rssync") {
         gbc.gridx = 1
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.gridwidth = GridBagConstraints.REMAINDER
-        this.add(JTextField(prefs[Preferences.mqttPassword] ?: "***"), gbc)
+        val mqttPasswordField = JTextField(prefs[Preferences.mqttPassword] ?: "***")
+        mqttPasswordField.document.addDocumentListener(DocumentChangeListener { saveButton.isEnabled = true })
+        this.add(mqttPasswordField, gbc)
 
         //separator
         gbc = GridBagConstraints()
@@ -171,6 +185,28 @@ class SettingsDialog: JFrame("rssync") {
             rs.start()
         }
         this.add(startButton, gbc)
+
+        //save button
+        gbc = GridBagConstraints()
+        gbc.insets = Insets(0, 5, 5, 5)
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridx = 0
+        gbc.gridy = 12
+        saveButton.addActionListener{
+            val currentPrefs = Preferences.get()
+            val updatedPrefs = currentPrefs + mapOf(
+                Preferences.rsUser to rsUserField.text,
+                Preferences.mqttServer to mqttServerField.text,
+                Preferences.mqttPort to mqttPortField.text,
+                Preferences.mqttUser to mqttUserField.text,
+                Preferences.mqttPassword to mqttPasswordField.text
+            )
+            Preferences.set(updatedPrefs)
+            saveButton.isEnabled = false
+        }
+        saveButton.isEnabled = false
+        this.add(saveButton, gbc)
 
         this.pack()
     }
