@@ -5,8 +5,6 @@ import java.awt.Toolkit
 
 class RSSync {
 
-    private val cb = Toolkit.getDefaultToolkit().systemClipboard
-
     private var rs = RemoteStorage("href", "token")
     private var mqtt = MQTT("", "", "", "") {}
 
