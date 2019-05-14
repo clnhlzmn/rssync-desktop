@@ -14,6 +14,8 @@ class SettingsDialog: JFrame("rssync") {
 
         this.layout = GridBagLayout()
 
+        val rs = RSSync()
+
         val prefs = Preferences.get()
 
         val saveButton = JButton("save")
@@ -181,7 +183,6 @@ class SettingsDialog: JFrame("rssync") {
         val startButton = JButton("start")
         startButton.addActionListener{
             println("start button")
-            val rs = RSSync()
             rs.start()
         }
         this.add(startButton, gbc)

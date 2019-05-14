@@ -8,7 +8,9 @@ class RSSync {
     private var rs = RemoteStorage("href", "token")
     private var mqtt = MQTT("", "", "", "") {}
 
-    private val clipboardListener = ClipboardListener()
+    private var clipboardListener = ClipboardListener()
+
+    private var started = false
 
     private fun getServerContent(): String? {
         return rs.getSync("/clipboard/txt")
@@ -23,42 +25,49 @@ class RSSync {
     }
 
     fun start() {
+        if (!started) {
 
-        val prefs = Preferences.get()
+            val prefs = Preferences.get()
 
-        val href = prefs[Preferences.rsHref]
-        val token = prefs[Preferences.rsToken]
-        if (href != null && token != null) {
-            rs = RemoteStorage(href, token)
-        }
-
-        val host = prefs[Preferences.mqttServer]
-        val port = prefs[Preferences.mqttPort]
-        val user = prefs[Preferences.mqttUser]
-        val pass = prefs[Preferences.mqttPassword]
-        if (host != null && port != null && user != null && pass != null) {
-            mqtt.disconnect()
-            mqtt = MQTT(host, port, user, pass) {
-                val content = getServerContent()
-                println("remote changed: $content")
-                clipboardListener.setContent(content)
+            val href = prefs[Preferences.rsHref]
+            val token = prefs[Preferences.rsToken]
+            if (href != null && token != null) {
+                rs = RemoteStorage(href, token)
             }
+
+            val host = prefs[Preferences.mqttServer]
+            val port = prefs[Preferences.mqttPort]
+            val user = prefs[Preferences.mqttUser]
+            val pass = prefs[Preferences.mqttPassword]
+            if (host != null && port != null && user != null && pass != null) {
+                mqtt.disconnect()
+                mqtt = MQTT(host, port, user, pass) {
+                    val content = getServerContent()
+                    println("remote changed: $content")
+                    clipboardListener.setContent(content)
+                }
+            }
+
+            mqtt.connect()
+
+            clipboardListener.notify = {
+                val content = clipboardListener.getContent()
+                println("local changed: $content")
+                setServerContent(content)
+                mqtt.publish()
+            }
+
+            clipboardListener.start()
+
+            started = true
         }
-
-        mqtt.connect()
-
-        clipboardListener.notify = {
-            val content = clipboardListener.getContent()
-            println("local changed: $content")
-            setServerContent(content)
-            mqtt.publish()
-        }
-
-        clipboardListener.start()
-
     }
 
     fun stop() {
-
+        if (started) {
+            mqtt.disconnect()
+            clipboardListener.listening = false
+            clipboardListener = ClipboardListener()
+        }
     }
 }

@@ -6,9 +6,11 @@ import java.awt.datatransfer.*
 //modified from https://stackoverflow.com/a/14226456/3447936
 class ClipboardListener : Thread(), ClipboardOwner {
 
-    var lastContent: String? = null
+    private var lastContent: String? = null
     var notify: ((String) -> Unit)? = null
-    var cb: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
+    private var cb: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
+
+    var listening = true
 
     fun setContent(content: String?) {
         val t = StringSelection(content)
@@ -31,14 +33,16 @@ class ClipboardListener : Thread(), ClipboardOwner {
     }
 
     override fun lostOwnership(c: Clipboard, t: Transferable) {
-        try {
-            sleep(250)  //waiting e.g for loading huge elements like word's etc.
-        } catch (e: Exception) {
-            println("Exception: $e")
+        if (listening) {
+            try {
+                sleep(250)  //waiting e.g for loading huge elements like word's etc.
+            } catch (e: Exception) {
+                println("Exception: $e")
+            }
+            val contents = cb.getContents(this)
+            processClipboard(contents, c)
+            takeOwnership(contents)
         }
-        val contents = cb.getContents(this)
-        processClipboard(contents, c)
-        takeOwnership(contents)
     }
 
     private fun takeOwnership(t: Transferable) {
