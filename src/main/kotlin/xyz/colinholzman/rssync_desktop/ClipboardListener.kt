@@ -31,16 +31,13 @@ class ClipboardListener : Thread(), ClipboardOwner {
     }
 
     override fun lostOwnership(c: Clipboard, t: Transferable) {
-
         try {
             sleep(250)  //waiting e.g for loading huge elements like word's etc.
         } catch (e: Exception) {
             println("Exception: $e")
         }
-
         val contents = cb.getContents(this)
         processClipboard(contents, c)
-
         takeOwnership(contents)
     }
 

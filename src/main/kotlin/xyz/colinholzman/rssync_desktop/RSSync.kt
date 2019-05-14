@@ -28,19 +28,20 @@ class RSSync {
 
         val href = prefs[Preferences.rsHref]
         val token = prefs[Preferences.rsToken]
-        if (href != null && token != null)
+        if (href != null && token != null) {
             rs = RemoteStorage(href, token)
+        }
 
         val host = prefs[Preferences.mqttServer]
         val port = prefs[Preferences.mqttPort]
         val user = prefs[Preferences.mqttUser]
         val pass = prefs[Preferences.mqttPassword]
         if (host != null && port != null && user != null && pass != null) {
+            mqtt.disconnect()
             mqtt = MQTT(host, port, user, pass) {
                 val content = getServerContent()
                 println("remote changed: $content")
                 clipboardListener.setContent(content)
-                //TODO: prevent local listener from noticing this change and publishing again
             }
         }
 
