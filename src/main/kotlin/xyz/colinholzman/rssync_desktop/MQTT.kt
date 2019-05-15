@@ -4,7 +4,7 @@ import org.eclipse.paho.client.mqttv3.*
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import java.lang.Exception
 
-class MQTT(val server: String, val port: String, val user: String?, val password: String?, val notify: () -> Unit) {
+class MQTT(var server: String, var port: String, var user: String?, var password: String?, val notify: () -> Unit) {
 
     private val broker = "tcp://$server:$port"
     private val clientId = Preferences.get()[Preferences.clientId]
@@ -18,13 +18,14 @@ class MQTT(val server: String, val port: String, val user: String?, val password
                 connOpts.userName = user
                 connOpts.password = password?.toCharArray()
                 client.connect(connOpts)
+                Log.println("[MQTT]: connected to $broker")
                 client.subscribe("rssync/#") { topic, message ->
                     if (!topic.endsWith(clientId!!)) {
                         notify()
                     }
                 }
             } catch (e: MqttException) {
-                println(e)
+                Log.println("[MQTT]: $e")
             }
         }
     }
@@ -33,15 +34,17 @@ class MQTT(val server: String, val port: String, val user: String?, val password
         try {
             client.publish("rssync/$clientId", MqttMessage())
         } catch (e: MqttException) {
-            println(e)
+            Log.println("[MQTT]: $e")
         }
     }
 
     fun disconnect() {
-        try {
-            client.disconnect()
-        } catch (e: MqttException) {
-            println(e)
+        if (client.isConnected) {
+            try {
+                client.disconnect()
+            } catch (e: MqttException) {
+                Log.println("[MQTT]: $e")
+            }
         }
     }
 
