@@ -1,13 +1,16 @@
 package xyz.colinholzman.rssync_desktop
 
 import xyz.colinholzman.remotestorage_kotlin.Authorization
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.Insets
+import java.awt.*
 import javax.swing.*
 import javax.swing.border.EtchedBorder
 import javax.swing.border.TitledBorder
 import javax.swing.JPanel
+import javax.swing.ScrollPaneConstants
+import javax.swing.JScrollPane
+import javax.swing.JTextArea
+
+
 
 
 
@@ -27,8 +30,8 @@ class SettingsDialog: JFrame("rssync") {
         val rsPanel = JPanel()
         rsPanel.layout = GridBagLayout()
         rsPanel.border = TitledBorder(EtchedBorder(), "remoteStorage")
-//        gbc.gridwidth = GridBagConstraints.REMAINDER
-//        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.fill = GridBagConstraints.HORIZONTAL
         this.add(rsPanel, gbc)
 
         //user label
@@ -168,6 +171,24 @@ class SettingsDialog: JFrame("rssync") {
             Preferences.update(Preferences.mqttPassword, mqttPasswordField.text)
         })
         mqttPanel.add(mqttPasswordField, gbc)
+
+        //log section
+        val logPanel = JPanel()
+        logPanel.layout = BorderLayout()
+        logPanel.border = TitledBorder(EtchedBorder(), "Log")
+        gbc = GridBagConstraints()
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridy = 2
+        logPanel.preferredSize = Dimension(400, 400)
+        this.add(logPanel, gbc)
+
+        val logArea = JTextArea()
+        logArea.isEditable = false
+        val logScroll = JScrollPane()
+        logScroll.add(logArea)
+        logScroll.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+        logPanel.add(logScroll, BorderLayout.CENTER)
 
         this.pack()
     }
