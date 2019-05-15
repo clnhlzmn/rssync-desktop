@@ -1,5 +1,6 @@
 package xyz.colinholzman.rssync_desktop
 
+import javafx.event.EventDispatcher
 import xyz.colinholzman.remotestorage_kotlin.Authorization
 import java.awt.*
 import javax.swing.*
@@ -9,14 +10,14 @@ import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.JScrollPane
 import javax.swing.JTextArea
-
-
-
+import javax.swing.SwingUtilities
+import javax.swing.border.Border
 
 
 class SettingsDialog: JFrame("rssync") {
 
     init {
+
         this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
         this.layout = GridBagLayout()
 
@@ -185,10 +186,15 @@ class SettingsDialog: JFrame("rssync") {
 
         val logArea = JTextArea()
         logArea.isEditable = false
-        val logScroll = JScrollPane()
-        logScroll.add(logArea)
-        logScroll.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+        val logScroll = JScrollPane(logArea)
         logPanel.add(logScroll, BorderLayout.CENTER)
+
+        Log.listeners.add {
+            SwingUtilities.invokeLater {
+                logArea.append(it + "\n")
+                logArea.isVisible = true
+            }
+        }
 
         this.pack()
     }

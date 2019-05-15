@@ -43,7 +43,7 @@ class RSSync {
                 mqtt.disconnect()
                 mqtt = MQTT(host, port, user, pass) {
                     val content = getServerContent()
-                    println("remote changed: $content")
+                    Log.println("remote changed: $content")
                     clipboardListener.setContent(content)
                 }
             }
@@ -52,7 +52,7 @@ class RSSync {
 
             clipboardListener.notify = {
                 val content = clipboardListener.getContent()
-                println("local changed: $content")
+                Log.println("local changed: $content")
                 setServerContent(content)
                 mqtt.publish()
             }
