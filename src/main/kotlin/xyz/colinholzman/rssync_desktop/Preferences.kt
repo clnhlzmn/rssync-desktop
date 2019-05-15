@@ -46,6 +46,12 @@ class Preferences {
             }
         }
 
+        fun update(key: String, value: String) {
+            val current = get()
+            val new = current + mapOf(key to value)
+            set(new)
+        }
+
     }
 
 }
