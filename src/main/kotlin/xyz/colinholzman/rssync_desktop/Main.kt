@@ -17,12 +17,6 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
 
-            val prefs = Preferences.get()
-            if (!prefs.containsKey(Preferences.clientId)) {
-                val newPrefs = prefs + mapOf(Preferences.clientId to UUID.randomUUID().toString())
-                Preferences.set(newPrefs)
-            }
-
             SwingUtilities.invokeLater {
                 val settings = SettingsDialog()
                 settings.isVisible = true

@@ -6,7 +6,6 @@ import java.awt.Toolkit
 class RSSync {
 
     private var rs = RemoteStorage("href", "token")
-    private var mqtt = MQTT("", "", "", "") {}
 
     private var clipboardListener = ClipboardListener()
 
@@ -35,26 +34,10 @@ class RSSync {
                 rs = RemoteStorage(href, token)
             }
 
-            val host = prefs[Preferences.mqttServer]
-            val port = prefs[Preferences.mqttPort]
-            val user = prefs[Preferences.mqttUser]
-            val pass = prefs[Preferences.mqttPassword]
-            if (host != null && port != null && user != null && pass != null) {
-                mqtt.disconnect()
-                mqtt = MQTT(host, port, user, pass) {
-                    val content = getServerContent()
-                    Log.println("remote changed: $content")
-                    clipboardListener.setContent(content)
-                }
-            }
-
-            mqtt.connect()
-
             clipboardListener.notify = {
                 val content = clipboardListener.getContent()
-                Log.println("local changed: $content")
+                println("local changed: $content")
                 setServerContent(content)
-                mqtt.publish()
             }
 
             clipboardListener.start()
@@ -65,7 +48,6 @@ class RSSync {
 
     fun stop() {
         if (started) {
-            mqtt.disconnect()
             clipboardListener.listening = false
             clipboardListener = ClipboardListener()
         }
