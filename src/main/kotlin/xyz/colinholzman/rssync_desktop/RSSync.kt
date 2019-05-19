@@ -13,10 +13,6 @@ class RSSync {
 
     private var started = false
 
-//    private fun getServerContent() {
-//        return rs.get("/clipboard/txt")
-//    }
-
     private fun setServerContent(value: String?) {
         if (value!= null) {
             rs.put(
@@ -66,7 +62,7 @@ class RSSync {
                             )
                         },
                         listener = {
-                            println("storage changed: $it")
+                            println("remote changed: $it")
                             clipboardListener.setContent(it)
                         }
                     )

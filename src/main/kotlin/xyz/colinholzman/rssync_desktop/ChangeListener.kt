@@ -1,7 +1,6 @@
 package xyz.colinholzman.rssync_desktop
 
 import java.util.*
-import javax.swing.SwingWorker
 
 class ChangeListener(
     val updatePeriod: Long,
