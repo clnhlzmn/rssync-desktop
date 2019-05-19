@@ -9,6 +9,8 @@ class RSSync {
 
     private var clipboardListener = ClipboardListener()
 
+    private var remoteListener: ChangeListener? = null
+
     private var started = false
 
     private fun getServerContent(): String? {
@@ -32,15 +34,25 @@ class RSSync {
             val token = prefs[Preferences.rsToken]
             if (href != null && token != null) {
                 rs = RemoteStorage(href, token)
+                remoteListener = ChangeListener(
+                    1000,
+                    getServerContent(),
+                    { getServerContent() },
+                    {
+                        println("storage changed: $it")
+                        clipboardListener.setContent(it)
+                    }
+                )
             }
 
             clipboardListener.notify = {
-                val content = clipboardListener.getContent()
-                println("local changed: $content")
-                setServerContent(content)
+                println("local changed: $it")
+                setServerContent(it)
             }
 
             clipboardListener.start()
+
+            remoteListener?.start()
 
             started = true
         }
@@ -50,6 +62,7 @@ class RSSync {
         if (started) {
             clipboardListener.listening = false
             clipboardListener = ClipboardListener()
+            remoteListener?.stop()
         }
     }
 }
