@@ -1,42 +1,58 @@
 package xyz.colinholzman.rssync_desktop
 
+import java.util.*
+import javax.swing.SwingWorker
+
 class ChangeListener(
     val updatePeriod: Long,
-    val initial: String?,
-    val getter: ()->String?,
+    var current: String?,
+    val getter: ((String?)->Unit, ()->Unit)->Unit,
     val listener: (String?)->Unit) {
 
-    class UpdaterThread(
-        val updatePeriod: Long,
-        val initial: String?,
-        val getter: ()->String?,
-        val listener: (String?)->Unit): Thread() {
-        private var lastValue = initial
-        var running = true
-        override fun run() {
-            while (running) {
-                val newValue = getter()
-                if (newValue != lastValue)
-                    listener(newValue)
-                lastValue = newValue
-                Thread.sleep(updatePeriod)
-            }
+    private var started = false
+
+    private var onSuccess: ((String?)->Unit)? = null
+    private var onFail: (()->Unit)? = null
+
+    private fun schedule() {
+        if (started) {
+            Timer().schedule(
+                object: TimerTask() {
+                    override fun run() {
+                        getter(onSuccess!!, onFail!!)
+                    }
+                },
+                updatePeriod
+            )
         }
     }
 
-    private var thread: UpdaterThread? = null
+    init {
+        onSuccess = {
+            if (it != current) {
+//                println("ChangeListener got new value $it")
+                current = it
+                listener(it)
+            }
+            schedule()
+        }
+        onFail = {
+            println("ChangeListener failed to get value, retrying")
+            schedule()
+        }
+    }
 
     fun start() {
-        if (thread == null) {
-            thread = UpdaterThread(updatePeriod, initial, getter, listener)
-            thread?.start()
+        if (!started) {
+            started = true
+            getter(onSuccess!!, onFail!!)
         }
     }
 
     fun stop() {
-        thread?.running = false
-        thread?.join()
-        thread = null
+        if (started) {
+            started = false
+        }
     }
 
 }
