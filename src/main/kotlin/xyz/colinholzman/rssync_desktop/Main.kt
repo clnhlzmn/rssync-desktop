@@ -8,6 +8,7 @@ import java.awt.CheckboxMenuItem
 import java.awt.SystemTray
 import java.awt.TrayIcon
 import java.io.File
+import javax.imageio.ImageIO
 
 
 class Main {
@@ -20,7 +21,7 @@ class Main {
                 return
             }
             val popup = PopupMenu()
-            val icon = ICODecoder.read(File(Main::class.java.getResource("/SyncArrow.ico").toURI())).firstOrNull()
+            val icon = Toolkit.getDefaultToolkit().getImage(Main::class.java.getResource("/ic_sync_white_48dp.png"))
             val trayIcon = TrayIcon(icon, "tray icon")
             val tray = SystemTray.getSystemTray()
 
@@ -64,9 +65,8 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
 
-            addSystemTrayIcon()
-
             SwingUtilities.invokeLater {
+                addSystemTrayIcon()
                 val settings = SettingsDialog()
                 settings.isVisible = true
             }
