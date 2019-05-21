@@ -18,8 +18,10 @@ class SettingsDialog: JFrame("rssync") {
 
     init {
 
-        this.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+        this.defaultCloseOperation = WindowConstants.HIDE_ON_CLOSE
         this.layout = GridBagLayout()
+
+        this.isVisible = false
 
         //preferences for loading/saving fields
         val prefs = Preferences.get()

@@ -9,11 +9,18 @@ import java.awt.SystemTray
 import java.awt.TrayIcon
 import java.io.File
 import javax.imageio.ImageIO
+import javax.swing.Action
+import kotlin.system.exitProcess
+import java.awt.event.MouseAdapter
+import com.sun.java.accessibility.util.AWTEventMonitor.addMouseListener
+import java.awt.event.MouseEvent
 
 
 class Main {
 
     companion object {
+
+        var settings: SettingsDialog? = null
 
         fun addSystemTrayIcon() {
             if (!SystemTray.isSupported()) {
@@ -27,29 +34,26 @@ class Main {
 
             // Create a pop-up menu components
             val aboutItem = MenuItem("About")
-            val cb1 = CheckboxMenuItem("Set auto size")
-            val cb2 = CheckboxMenuItem("Set tooltip")
-            val displayMenu = Menu("Display")
-            val errorItem = MenuItem("Error")
-            val warningItem = MenuItem("Warning")
-            val infoItem = MenuItem("Info")
-            val noneItem = MenuItem("None")
+            //TODO: add about screen
             val exitItem = MenuItem("Exit")
+            exitItem.addActionListener {
+                exitProcess(0)
+            }
 
             //Add components to pop-up menu
             popup.add(aboutItem)
-            popup.addSeparator()
-            popup.add(cb1)
-            popup.add(cb2)
-            popup.addSeparator()
-            popup.add(displayMenu)
-            displayMenu.add(errorItem)
-            displayMenu.add(warningItem)
-            displayMenu.add(infoItem)
-            displayMenu.add(noneItem)
             popup.add(exitItem)
 
             trayIcon.popupMenu = popup
+            trayIcon.addMouseListener(object : MouseAdapter() {
+                override fun mouseClicked(e: MouseEvent) {
+                    if (e.clickCount == 1 && e.button == MouseEvent.BUTTON1) {
+                        if (settings != null) {
+                            settings!!.isVisible = !settings!!.isVisible
+                        }
+                    }
+                }
+            })
 
             try {
                 tray.add(trayIcon)
@@ -59,7 +63,6 @@ class Main {
 
         }
 
-
         val rs = RSSync()
 
         @JvmStatic
@@ -67,8 +70,7 @@ class Main {
 
             SwingUtilities.invokeLater {
                 addSystemTrayIcon()
-                val settings = SettingsDialog()
-                settings.isVisible = true
+                settings = SettingsDialog()
             }
 
             rs.start()
